@@ -1,10 +1,10 @@
 import sys
-from interface import Viewer
+from interface import Window
 
 def main() -> int:
-    viewer = Viewer(800, 600, "Arkabuko - Image Viewer")
+    window = Window(800, 600, "Arkabuko - Image Viewer")
     # viewer.wait_for_close()
-    viewer.start()
+    window.start()
 
 
 if __name__ == '__main__':

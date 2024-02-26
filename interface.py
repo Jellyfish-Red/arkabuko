@@ -9,27 +9,6 @@ class Window:
 
         self.width = width
         self.height = height
-
-        self.__running = False
-        self.root.protocol("WM_DELETE_WINDOW", self.close)
-
-    def redraw(self):
-        self.root.update_idletasks()
-        self.root.update()
-
-    def wait_for_close(self):
-        self.__running = True
-
-        while self.__running:
-            self.redraw()
-
-    def close(self):
-        self.__running = False
-
-
-class Viewer(Window):
-    def __init__(self, width: int, height: int, title: str = ""):
-        super().__init__(width, height, title)
         self.primary_image = None
 
     def start(self):
