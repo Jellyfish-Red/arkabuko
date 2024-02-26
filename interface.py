@@ -5,7 +5,7 @@ class Window:
     def __init__(self, width: int, height: int, title: str = ""):
         self.root = Tk()
         self.root.title(title)
-        self.root.geometry(str(width) + "x" + str(height))
+        # self.root.geometry(str(width) + "x" + str(height))
 
         self.width = width
         self.height = height
@@ -43,9 +43,9 @@ class Viewer(Window):
         entry_frame = Frame(self.root, width = self.width, height = 50)
 
         # image_select_frame.pack()
-        view_frame.pack(side = TOP)
+        view_frame.pack()
         tag_frame.pack()
-        entry_frame.pack(side=BOTTOM)
+        entry_frame.pack()
 
         # Prepare View Frame
         canvas = Canvas(view_frame, bg="white", width = self.width, height = self.height - 50)
@@ -57,16 +57,16 @@ class Viewer(Window):
         tag_label = Label(tag_frame, text = "Tags: ", anchor = "w")
         tag_label.pack(side = LEFT)
         recent_tags = []
-        for tag_number in range(1, 11): # TODO: Convert to grid?
+        for tag_number in range(1, 11):
             tag = Button(tag_frame, text = "Recent Tag " + str(tag_number))
-            tag.pack()
+            tag.pack(side = LEFT)
             recent_tags.append(tag)
 
         # Prepare Entry Frame
         tag_entry_label = Label(entry_frame, text = "Enter New Tag: ")
         tag_entry_label.pack(side = LEFT)
         tag_entry = Entry(entry_frame, width = 50)
-        tag_entry.pack(side = RIGHT)
+        tag_entry.pack()
 
     def next_image(self):
         pass
