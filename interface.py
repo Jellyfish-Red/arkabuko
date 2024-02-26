@@ -1,4 +1,4 @@
-from tkinter import Tk, ttk, Canvas, Frame, Button, Label, TOP, BOTTOM, LEFT, RIGHT, BOTH, HORIZONTAL
+from tkinter import Tk, ttk, Canvas, Frame, Button, Label, Entry, TOP, BOTTOM, LEFT, RIGHT, BOTH, HORIZONTAL
 from PIL import ImageTk,  Image
 
 class Window:
@@ -61,6 +61,12 @@ class Viewer(Window):
             tag = Button(tag_frame, text = "Recent Tag " + str(tag_number))
             tag.pack()
             recent_tags.append(tag)
+
+        # Prepare Entry Frame
+        tag_entry_label = Label(entry_frame, text = "Enter New Tag: ")
+        tag_entry_label.pack(side = LEFT)
+        tag_entry = Entry(entry_frame, width = 50)
+        tag_entry.pack(side = RIGHT)
 
     def next_image(self):
         pass
