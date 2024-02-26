@@ -57,10 +57,11 @@ class Viewer(Window):
             tag = Button(tag_frame, text = "Recent Tag " + str(tag_number))
             tag.pack()
             recent_tags.append(tag)
-        
-        # self.root.after(50, self.prepare_test_frame)
-        # self.root.mainloop()
 
+    def next_image(self):
+        pass
+    def previous_image(self):
+        pass
 
     def resize_image(self, relative_image_path: str, target_width: int) -> ImageTk.PhotoImage:
         image = Image.open(relative_image_path).convert("RGBA")
