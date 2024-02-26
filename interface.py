@@ -37,19 +37,23 @@ class Viewer(Window):
         self.root.mainloop()
 
     def prepare_test_frame(self):
+        # image_select_frame = Frame(self.root, width = self.width, height = 50)
         view_frame = Frame(self.root, width = self.width, height = self.height - 50)
         tag_frame = Frame(self.root, width = self.width, height = 50)
-        # entry_frame = Frame(self.root, width = self.width, height = 50)
+        entry_frame = Frame(self.root, width = self.width, height = 50)
 
+        # image_select_frame.pack()
         view_frame.pack(side = TOP)
         tag_frame.pack()
-        # entry_frame.pack(side=BOTTOM)
+        entry_frame.pack(side=BOTTOM)
 
+        # Prepare View Frame
         canvas = Canvas(view_frame, bg="white", width = self.width, height = self.height - 50)
         canvas.pack(fill=BOTH, expand=True)
         self.primary_image = self.resize_image("images/d7eb66cf39dde20d54e53672ac8b3653.jpg", self.width)
         canvas.create_image(self.width // 2, self.height // 2, image = self.primary_image)
 
+        # Prepare Tag Frame
         test_label = Label(tag_frame, text = "Tags: ", anchor = "w")
         test_label.pack(side = LEFT)
         recent_tags = []
