@@ -33,10 +33,10 @@ class Viewer(Window):
         self.primary_image = None
 
     def start(self):
-        self.prepare_test_frame()
+        self.prepare_frame()
         self.root.mainloop()
 
-    def prepare_test_frame(self):
+    def prepare_frame(self):
         # image_select_frame = Frame(self.root, width = self.width, height = 50)
         view_frame = Frame(self.root, width = self.width, height = self.height - 50)
         tag_frame = Frame(self.root, width = self.width, height = 50)
@@ -54,8 +54,8 @@ class Viewer(Window):
         canvas.create_image(self.width // 2, self.height // 2, image = self.primary_image)
 
         # Prepare Tag Frame
-        test_label = Label(tag_frame, text = "Tags: ", anchor = "w")
-        test_label.pack(side = LEFT)
+        tag_label = Label(tag_frame, text = "Tags: ", anchor = "w")
+        tag_label.pack(side = LEFT)
         recent_tags = []
         for tag_number in range(1, 11): # TODO: Convert to grid?
             tag = Button(tag_frame, text = "Recent Tag " + str(tag_number))
