@@ -17,20 +17,22 @@ class Window:
 
     def prepare_frame(self):
         # image_select_frame = Frame(self.root, width = self.width, height = 50)
-        view_frame = Frame(self.root, width = self.width, height = self.height - 50)
+        view_frame = Frame(self.root)
         tag_frame = Frame(self.root, width = self.width, height = 50)
         entry_frame = Frame(self.root, width = self.width, height = 50)
 
         # image_select_frame.pack()
-        view_frame.pack()
+        view_frame.pack(fill = BOTH, expand = True)
         tag_frame.pack()
         entry_frame.pack()
 
         # Prepare View Frame
-        canvas = Canvas(view_frame, bg="white", width = self.width, height = self.height - 50)
+        self.primary_image = self.resize_image("images/stare.png", self.width)
+        canvas = Canvas(view_frame, width = self.primary_image.width(), height = self.primary_image.height())
         canvas.pack(fill=BOTH, expand=True)
-        self.primary_image = self.resize_image("images/d7eb66cf39dde20d54e53672ac8b3653.jpg", self.width)
-        canvas.create_image(self.width // 2, self.height // 2, image = self.primary_image)
+        desired_x = (1.5 *  self.primary_image.width()) // 2
+        desired_y = self.primary_image.height() // 2
+        canvas.create_image(desired_x, desired_y, image = self.primary_image)
 
         # Prepare Tag Frame
         tag_label = Label(tag_frame, text = "Tags: ", anchor = "w")
@@ -52,13 +54,16 @@ class Window:
     def previous_image(self):
         pass
 
+    def get_scale_size_values(self, target_width: int, image_size: tuple) -> tuple:
+        scale_factor = image_size[0] / target_width
+        scaled_height = int(image_size[1] // scale_factor)
+
+        return (target_width, scaled_height)
+
     def resize_image(self, relative_image_path: str, target_width: int) -> ImageTk.PhotoImage:
         image = Image.open(relative_image_path).convert("RGBA")
         
-        scale_factor = image.width / target_width
-        scaled_height = int(image.height // scale_factor)
-
-        return ImageTk.PhotoImage(image.resize((target_width, scaled_height)))
+        return ImageTk.PhotoImage(image.resize(self.get_scale_size_values(target_width, image.size)))
     
     def display_image(self, relative_image_path: str) -> ImageTk.PhotoImage:
         image = Image.open(relative_image_path)
