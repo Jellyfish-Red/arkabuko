@@ -30,6 +30,7 @@ class Window:
 class Viewer(Window):
     def __init__(self, width: int, height: int, title: str = ""):
         super().__init__(width, height, title)
+        self.primary_image = None
 
     def start(self):
         self.prepare_test_frame()
@@ -46,8 +47,8 @@ class Viewer(Window):
 
         canvas = Canvas(view_frame, bg="white", width = self.width, height = self.height - 50)
         canvas.pack(fill=BOTH, expand=True)
-        test_image = self.resize_image("images/d7eb66cf39dde20d54e53672ac8b3653.jpg", self.width)
-        canvas.create_image(self.width // 2, self.height // 2, image = test_image)
+        self.primary_image = self.resize_image("images/d7eb66cf39dde20d54e53672ac8b3653.jpg", self.width)
+        canvas.create_image(self.width // 2, self.height // 2, image = self.primary_image)
 
         test_label = Label(tag_frame, text = "Tags: ", anchor = "w")
         test_label.pack(side = LEFT)
@@ -58,7 +59,7 @@ class Viewer(Window):
             recent_tags.append(tag)
         
         # self.root.after(50, self.prepare_test_frame)
-        self.root.mainloop()
+        # self.root.mainloop()
 
 
     def resize_image(self, relative_image_path: str, target_width: int) -> ImageTk.PhotoImage:
