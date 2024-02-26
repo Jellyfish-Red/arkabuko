@@ -1,0 +1,11 @@
+# Image Viewer
+- Small-sized image
+-- Can be expanded by clicking on it
+
+# Image Tagger
+- Space below image preview to see the 10(?) last tags used
+- Space below tags to enter a new tag (Text box)
+-- Typing something and pressing enter will apply the text as a new tag onto the image
+
+# Data Storage
+- Data is stored via a JSON file, linking files (absolute file path, file name, and file extension) and data (tag lists) together
