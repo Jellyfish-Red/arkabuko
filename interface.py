@@ -7,10 +7,17 @@ from os import listdir
 from os.path import isfile, join, basename, abspath
 
 class Window:
-    def __init__(self, width: int, height: int, title: str, tag_handler: TagHandler = None):
+    def __init__(self, width: int, height: int, title: str, 
+                 tag_handler: TagHandler = None, 
+                 image_dir: str = None, 
+                 last_image_path: str = None):
+        
+        if not image_dir:
+            raise Exception("Requires image directory to be provided.")
+        if not last_image_path:
+            raise Exception("Requires currently-selected image to be provided")
         self.root = Tk()
         self.root.title(title)
-        # self.root.geometry(str(width) + "x" + str(height))
 
         # Hard-Coded Constants TODO: Move to Config File
         self.IMAGE_SELECT_WIDTH = 250
@@ -27,13 +34,12 @@ class Window:
         self.recent_tags = []
 
         # Selectable images
-        self.image_directory = "/mnt/e/programming/development/arkabuko/images/"
+        self.image_directory = image_dir
         self.image_paths_list = []
 
         # Currently-selected image
-        self.primary_image = []
-        # self.primary_image_filepath = "stare.png" 
-        self.primary_image_filepath = "ffxiv_01132024_194154_446.png"
+        self.primary_image = None
+        self.primary_image_filepath = join(image_dir, last_image_path)
         self.primary_image_canvas = None
 
         # Adjacent images
@@ -60,7 +66,7 @@ class Window:
         self.prepare_tag_view_frame()
         self.prepare_tag_suggestions_frame()
         self.prepare_tag_entry_frame()
-        self.select_image(self.primary_image_canvas, self.image_directory + self.primary_image_filepath)
+        self.select_image(self.view_frame, join(self.image_directory, self.primary_image_filepath))
         self.populate_image_select_frame(self.image_select_frame, self.primary_image_filepath, self.image_paths_list)
 
     def prepare_frames(self, window_width):
@@ -95,8 +101,6 @@ class Window:
             if 0 <= i < len(image_paths):
                 image_select_paths.append(image_paths[i])
 
-        print(image_select_paths)
-        
         for i, image_path in enumerate(image_select_paths):
             # Prepare image tag
             image_tag = "image_preview_" + str(i)
@@ -106,9 +110,20 @@ class Window:
             canvas.pack(side=tk.LEFT, padx=10)  # Adjust the placement as needed
 
             # Load and display the image on the canvas
-            self.load_and_display_image(canvas, image_path, self.adjacent_image_list, image_tag)
+            image = self.load_and_display_image(canvas, image_path, image_tag)
+            self.adjacent_image_list.append(image)
 
-    def load_and_display_image(self, canvas, image_path, image_list, image_tag):
+            if i == 0:
+                canvas.tag_bind(image_tag, "<Button-1>", self.on_click_left_image)
+            elif i == 2:
+                canvas.tag_bind(image_tag, "<Button-1>", self.on_click_right_image)
+
+    def on_click_left_image(self, event):
+        pass
+    def on_click_right_image(self, event):
+        pass
+
+    def load_and_display_image(self, canvas, image_path, image_tag) -> ImageTk.PhotoImage:
         # Load the image using Pillow
         pil_image = Image.open(image_path)
         target_width = canvas.winfo_reqwidth()
@@ -116,18 +131,14 @@ class Window:
 
         # Display the image on the canvas
         canvas.create_image(0, 0, anchor = tk.NW, image = tk_image, tags = image_tag)
-
-        # Store the PhotoImage in the list to prevent garbage collection
-        image_list.append(tk_image)
+        
+        return tk_image
 
     def prepare_view_frame(self):
         # Prepare View Frame
         # Use a default value for the width and height, just in case the image isn't selected yet
         width = self.width
         height = self.VIEW_FRAME_HEIGHT
-        # if self.primary_image is not None:
-        #     width = self.primary_image.width()
-        #     height = self.primary_image.height()
 
         if not self.primary_image_canvas:
             self.primary_image_canvas = Canvas(self.view_frame, width = width, height = height)
@@ -169,16 +180,20 @@ class Window:
     def previous_image(self):
         pass
 
-    def select_image(self, canvas: tk.Canvas, target_image_file_path: str):
-        # Determine if canvas clear is necessary
-        if self.primary_image_filepath != target_image_file_path:
-            if canvas is not None:
-                canvas.delete("all")
-
+    def select_image(self, frame: tk.Frame, image_path: str):
         # Prepare primary image variables
         self.primary_image = []
-        self.primary_image_filepath = target_image_file_path
-        self.load_and_display_image(canvas, self.primary_image_filepath, self.primary_image, "primary_image")
+        for widget in frame.winfo_children():
+            if isinstance(widget, tk.Canvas):
+                widget.destroy()
+        image_tag = "primary_image"
+
+        # Create a Canvas widget
+        canvas = tk.Canvas(frame, width=self.width, height=self.VIEW_FRAME_HEIGHT)
+        canvas.pack(side=tk.LEFT, padx=10)  # Adjust the placement as needed
+
+        # Load and display the image on the canvas
+        self.primary_image = self.load_and_display_image(canvas, image_path, image_tag)
 
     def get_scale_size_values(self, target_width: int, image_size: tuple) -> tuple:
         scale_factor = image_size[0] / target_width
@@ -196,4 +211,7 @@ class Window:
 
     # Generate a list of image file paths within the Image Directory
     def generate_image_list(self):
-        self.image_paths_list = [join(self.image_directory, f) for f in listdir(self.image_directory) if isfile(join(self.image_directory, f))]
+        self.image_paths_list = [join(self.image_directory, f) 
+                                 for f in listdir(self.image_directory) 
+                                 if isfile(join(self.image_directory, f))]
+        print(self.image_paths_list)

@@ -1,5 +1,4 @@
 import json
-from typing import List
 
 class TagHandler:
     def __init__(self):
@@ -41,7 +40,7 @@ class TagHandler:
             if tag in self.tag_dictionary[image_file_path]:
                 self.tag_dictionary[image_file_path].remove(tag)
 
-    def get(self, image_file_path: str) -> List[str]:
+    def get(self, image_file_path: str) -> list[str]:
         if image_file_path is None:
             return None
         
