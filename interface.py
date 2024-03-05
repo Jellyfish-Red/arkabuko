@@ -103,7 +103,7 @@ class Window:
 
         for i, image_path in enumerate(image_select_paths):
             # Prepare image tag
-            image_tag = "image_preview_" + str(i)
+            image_tag = "image_preview_" + basename(image_path)
 
             # Create a Canvas widget
             canvas = tk.Canvas(frame, width=self.IMAGE_SELECT_WIDTH, height=self.IMAGE_SELECT_HEIGHT)
@@ -111,17 +111,33 @@ class Window:
 
             # Load and display the image on the canvas
             image = self.load_and_display_image(canvas, image_path, image_tag)
-            self.adjacent_image_list.append(image)
+            self.adjacent_image_list.append((image_path, image))
 
             if i == 0:
                 canvas.tag_bind(image_tag, "<Button-1>", self.on_click_left_image)
+            elif i == 1:
+                canvas.tag_bind(image_tag, "<Button-1>", self.on_click_middle_image)
             elif i == 2:
                 canvas.tag_bind(image_tag, "<Button-1>", self.on_click_right_image)
 
     def on_click_left_image(self, event):
-        pass
+        image = self.adjacent_image_list[0]
+        print(f"left {event.widget} clicked: {image[0]}")
+        self.update_images(image)
+
+    def on_click_middle_image(self, event):
+        image = self.adjacent_image_list[1]
+        print(f"middle {event.widget} clicked: {image[0]}")
+        self.update_images(image)
+
     def on_click_right_image(self, event):
-        pass
+        image = self.adjacent_image_list[2]
+        print(f"right {event.widget} clicked: {image[0]}")
+        self.update_images(image)
+
+    def update_images(self, image):
+        self.select_image(self.view_frame, image[0])
+        self.populate_image_select_frame(self.image_select_frame, image[0], self.image_paths_list)
 
     def load_and_display_image(self, canvas, image_path, image_tag) -> ImageTk.PhotoImage:
         # Load the image using Pillow
@@ -174,11 +190,6 @@ class Window:
         tag_entry_label.pack(side = LEFT)
         tag_entry = Entry(self.tag_entry_frame, width = 50)
         tag_entry.pack()
-
-    def next_image(self):
-        pass
-    def previous_image(self):
-        pass
 
     def select_image(self, frame: tk.Frame, image_path: str):
         # Prepare primary image variables
