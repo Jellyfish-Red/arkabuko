@@ -37,6 +37,7 @@ class Window:
         # Currently-selected image
         self.primary_image_filepath = join(image_dir, last_image_path)
         self.primary_image_canvas = None
+        self.image_select_canvases = []
 
     def start(self):
         self.generate_image_list()
@@ -45,12 +46,13 @@ class Window:
 
     def prepare_window(self):
         self.prepare_frames(self.width)
-        self.prepare_view_frame()
+        self.prepare_image_select_frame(self.image_select_frame, self.IMAGE_SELECT_WIDTH, self.IMAGE_SELECT_HEIGHT)
+        self.prepare_view_frame(self.view_frame, self.width, self.VIEW_FRAME_HEIGHT)
         self.prepare_tag_view_frame()
         self.prepare_tag_suggestions_frame()
         self.prepare_tag_entry_frame()
-        self.select_image(self.view_frame, join(self.image_directory, self.primary_image_filepath))
-        self.populate_image_select_frame(self.image_select_frame, self.primary_image_filepath, self.image_paths_list)
+        self.select_image(self.primary_image_canvas, join(self.image_directory, self.primary_image_filepath))
+        self.populate_image_select_frame(self.image_select_canvases, self.primary_image_filepath, self.image_paths_list)
 
     def prepare_frames(self, window_width):
         self.image_select_frame = Frame(self.root, width = window_width, height = 50, bg = "red")
@@ -65,16 +67,43 @@ class Window:
         self.tag_suggestions_frame.pack()
         self.tag_entry_frame.pack()
 
+    def prepare_image_select_frame(self,
+                                   frame: tk.Frame,
+                                   width: int,
+                                   height: int):
+        for widget in frame.winfo_children():
+            if isinstance(widget, tk.Canvas):
+                widget.destroy()
+        self.image_select_canvases = []
+
+        for i in range(0, 3):
+
+            # Create a Canvas widget
+            canvas = tk.Canvas(frame, width = width, height = height)
+            canvas.pack(side = tk.LEFT, padx = 10)  # Adjust the placement as needed
+            self.image_select_canvases.append(canvas)
+
+            # Prepare tag for future images and link tag to event on click
+            image_tag = "image_preview"
+            
+            if i == 0:
+                canvas.tag_bind(image_tag, "<Button-1>", self.on_click_left_image)
+            elif i == 1:
+                canvas.tag_bind(image_tag, "<Button-1>", self.on_click_middle_image)
+            elif i == 2:
+                canvas.tag_bind(image_tag, "<Button-1>", self.on_click_right_image)
+
     def populate_image_select_frame(self, 
-                                    frame: tk.Frame, 
+                                    canvases: list[tk.Canvas], 
                                     center_image_filepath: str, 
                                     image_paths: list[str]):
         # Prepare variables
         self.adjacent_image_list = []
         is_leftmost = False
-        for widget in frame.winfo_children():
-            if isinstance(widget, tk.Canvas):
-                widget.destroy()
+
+        # Clear all images from canvases
+        for canvas in canvases:
+            canvas.delete("image_preview")
 
         # Get the images adjacent to the Primary.
         primary_image_index = image_paths.index(center_image_filepath)
@@ -86,46 +115,38 @@ class Window:
                 image_select_paths.append(image_paths[i])
 
         if len(image_select_paths) == 2:
-            canvas = tk.Canvas(frame, width = self.IMAGE_SELECT_WIDTH, height = self.IMAGE_SELECT_HEIGHT)
-            canvas.pack(side = tk.LEFT, padx = 10)  # Adjust the placement as needed
+            is_leftmost = True
+            self.adjacent_image_list.append(("None", None))
 
         for i, image_path in enumerate(image_select_paths):
-            # Prepare image tag
-            image_tag = "image_preview_" + basename(image_path)
+            # If there are only two images to show because you're at the left-most image, 
+            # leave the leftmost canvas blank and add 1 to the index
+            if is_leftmost:
+                i += 1
 
-            # Create a Canvas widget
-            canvas = tk.Canvas(frame, width = self.IMAGE_SELECT_WIDTH, height = self.IMAGE_SELECT_HEIGHT)
-            canvas.pack(side = tk.LEFT, padx = 10)  # Adjust the placement as needed
+            # Prepare image tag
+            image_tag = "image_preview"
 
             # Load and display the image on the canvas
+            canvas = canvases[i]
             image = self.load_and_display_image(canvas, image_path, image_tag)
             self.adjacent_image_list.append((image_path, image))
 
-            if i == 0:
-                canvas.tag_bind(image_tag, "<Button-1>", self.on_click_left_image)
-            elif i == 1:
-                canvas.tag_bind(image_tag, "<Button-1>", self.on_click_middle_image)
-            elif i == 2:
-                canvas.tag_bind(image_tag, "<Button-1>", self.on_click_right_image)
-
     def on_click_left_image(self, event):
         image = self.adjacent_image_list[0]
-        print(f"left {event.widget} clicked: {image[0]}")
         self.update_images(image)
 
     def on_click_middle_image(self, event):
         image = self.adjacent_image_list[1]
-        print(f"middle {event.widget} clicked: {image[0]}")
         self.update_images(image)
 
     def on_click_right_image(self, event):
         image = self.adjacent_image_list[2]
-        print(f"right {event.widget} clicked: {image[0]}")
         self.update_images(image)
 
     def update_images(self, image):
-        self.select_image(self.view_frame, image[0])
-        self.populate_image_select_frame(self.image_select_frame, image[0], self.image_paths_list)
+        self.select_image(self.primary_image_canvas, image[0])
+        self.populate_image_select_frame(self.image_select_canvases, image[0], self.image_paths_list)
 
     def load_and_display_image(self, canvas, image_path, image_tag) -> ImageTk.PhotoImage:
         # Load the image using Pillow
@@ -138,15 +159,17 @@ class Window:
         
         return tk_image
 
-    def prepare_view_frame(self):
+    def prepare_view_frame(self, frame: tk.Frame, width: int, height: int):
         # Prepare View Frame
         # Use a default value for the width and height, just in case the image isn't selected yet
-        width = self.width
-        height = self.VIEW_FRAME_HEIGHT
 
         if not self.primary_image_canvas:
             self.primary_image_canvas = Canvas(self.view_frame, width = width, height = height)
         self.primary_image_canvas.pack(fill=BOTH, expand=True)
+
+        # Create a Canvas widget
+        canvas = tk.Canvas(frame, width=self.width, height=self.VIEW_FRAME_HEIGHT)
+        canvas.pack(side=tk.LEFT, padx=10)  # Adjust the placement as needed
 
     def prepare_tag_view_frame(self):
         # Prepare Tag View Frame
@@ -179,18 +202,7 @@ class Window:
         tag_entry = Entry(self.tag_entry_frame, width = 50)
         tag_entry.pack()
 
-    def select_image(self, frame: tk.Frame, image_path: str):
-        # Prepare primary image variables
-        self.primary_image = []
-        for widget in frame.winfo_children():
-            if isinstance(widget, tk.Canvas):
-                widget.destroy()
-        image_tag = "primary_image"
-
-        # Create a Canvas widget
-        canvas = tk.Canvas(frame, width=self.width, height=self.VIEW_FRAME_HEIGHT)
-        canvas.pack(side=tk.LEFT, padx=10)  # Adjust the placement as needed
-
+    def select_image(self, canvas: tk.Canvas, image_path: str, image_tag: str = "primary_image"):
         # Load and display the image on the canvas
         self.primary_image = self.load_and_display_image(canvas, image_path, image_tag)
 
@@ -207,6 +219,9 @@ class Window:
     def display_image(self, image_path: str) -> ImageTk.PhotoImage:
         image = Image.open(image_path)
         return ImageTk.PhotoImage(image)
+    
+    def delete_image_from_canvas(self, canvas: tk.Canvas, tag: str):
+        canvas.delete(tag)
 
     # Generate a list of image file paths within the Image Directory
     def generate_image_list(self):
