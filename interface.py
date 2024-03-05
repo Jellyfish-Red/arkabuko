@@ -30,30 +30,13 @@ class Window:
 
         # Tags
         self.tag_handler = tag_handler
-        self.primary_image_tag_list = []
-        self.recent_tags = []
 
         # Selectable images
         self.image_directory = image_dir
-        self.image_paths_list = []
 
         # Currently-selected image
-        self.primary_image = None
         self.primary_image_filepath = join(image_dir, last_image_path)
         self.primary_image_canvas = None
-
-        # Adjacent images
-        self.adjacent_image_list = []
-
-        # Frames
-        self.image_select_frame = None
-        self.view_frame = None
-        self.tag_view_frame = None
-        self.tag_suggestions_frame = None
-        self.tag_entry_frame = None
-
-        # Selectable images
-        self.selectable_images = None
 
     def start(self):
         self.generate_image_list()
@@ -88,6 +71,7 @@ class Window:
                                     image_paths: list[str]):
         # Prepare variables
         self.adjacent_image_list = []
+        is_leftmost = False
         for widget in frame.winfo_children():
             if isinstance(widget, tk.Canvas):
                 widget.destroy()
@@ -101,13 +85,17 @@ class Window:
             if 0 <= i < len(image_paths):
                 image_select_paths.append(image_paths[i])
 
+        if len(image_select_paths) == 2:
+            canvas = tk.Canvas(frame, width = self.IMAGE_SELECT_WIDTH, height = self.IMAGE_SELECT_HEIGHT)
+            canvas.pack(side = tk.LEFT, padx = 10)  # Adjust the placement as needed
+
         for i, image_path in enumerate(image_select_paths):
             # Prepare image tag
             image_tag = "image_preview_" + basename(image_path)
 
             # Create a Canvas widget
-            canvas = tk.Canvas(frame, width=self.IMAGE_SELECT_WIDTH, height=self.IMAGE_SELECT_HEIGHT)
-            canvas.pack(side=tk.LEFT, padx=10)  # Adjust the placement as needed
+            canvas = tk.Canvas(frame, width = self.IMAGE_SELECT_WIDTH, height = self.IMAGE_SELECT_HEIGHT)
+            canvas.pack(side = tk.LEFT, padx = 10)  # Adjust the placement as needed
 
             # Load and display the image on the canvas
             image = self.load_and_display_image(canvas, image_path, image_tag)
