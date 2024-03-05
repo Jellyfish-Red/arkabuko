@@ -1,22 +1,35 @@
 import json
-from os.path import abspath
+from os.path import abspath, exists
 
 class TagHandler:
-    def __init__(self, filepath: str):
-        self.file_path = filepath
-        if not self.file_path:
+    def __init__(self, filepath: str = None):
+        # If no file path was given, assume there is no file and create a new one at the default location.
+        if not filepath:
             default_path = "data/tags.json"
-            file = open(default_path, 'w')
-            file.close()
+            with open(default_path, 'w') as file:
+                json.dump({}, file)
+
             self.file_path = abspath(default_path)
-        self.__unpack(self.file_path)
+
+        # If a file path was given but no file exists, create a file at that file path.
+        elif not exists(filepath):
+            self.file_path = abspath(filepath)
+            with open(self.file_path, 'w') as file:
+                json.dump({}, file)
+
+        # Otherwise, or if you have passed through either of the aforementioned checks, make sure to safe the file path.
+        else:
+            self.file_path = abspath(filepath)
+
+        # You are now ready to unpack the file.
+        self.__unpack()
 
     def __unpack(self):
         with open(self.file_path) as f:
             self.tag_dictionary = json.load(f)
 
     def pack(self):
-        with open(self.file_path) as f:
+        with open(self.file_path, 'w') as f:
             json.dump(self.tag_dictionary, f)
 
     def add(self, image_file_path: str, tag: str):

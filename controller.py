@@ -4,7 +4,6 @@ from tagging import TagHandler
 
 class Controller:
     def __init__(self, width: int, height: int, title: str = "", 
-                 tag_file_path: str = None, 
                  config_file_path: str = None):
         # # Extract configuration information
         # if not config_file_path:
@@ -17,6 +16,7 @@ class Controller:
         # if not image_folder_path:
         #     raise Exception("Image folder missing")
         
+        tag_rel_file_path = "data/tags.json"
         # self.tag_handler = TagHandler()
         # self.tag_handler.unpack(tag_file_path)
 
