@@ -11,7 +11,7 @@ class TagHandler:
             self.file_path = abspath(default_path)
         self.__unpack(self.file_path)
 
-    def unpack(self):
+    def __unpack(self):
         with open(self.file_path) as f:
             self.tag_dictionary = json.load(f)
 
