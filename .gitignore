@@ -1,6 +1,7 @@
 # Personal and Test Folders
 images/
 data/
+tests/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
