@@ -3,8 +3,8 @@ import json
 class Config:
     def __init__(self, filepath: str):
         self.data = None
-        self.filepath = filepath
-        self.__unpack(filepath)
+        self.file_path = filepath
+        self.__unpack()
 
     def __unpack(self):
         with open(self.file_path) as f:
@@ -19,3 +19,6 @@ class Config:
     
     def get_selected(self):
         return self.data['selected']
+    
+    def get_tag_filepath(self):
+        return self.data['tag_file_path']
