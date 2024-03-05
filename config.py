@@ -6,8 +6,7 @@ class Config:
         self.filepath = filepath
         self.__unpack(filepath)
 
-    def __unpack(self, filepath: str):
-        self.file_path = filepath
+    def __unpack(self):
         with open(self.file_path) as f:
             self.data = json.load(f)
 

@@ -1,17 +1,21 @@
 import json
+from os.path import abspath
 
 class TagHandler:
-    def __init__(self):
-        self.file_path = None
-        self.tag_dictionary = {}
-
-    def unpack_file(self, filepath: str):
+    def __init__(self, filepath: str):
         self.file_path = filepath
+        if not self.file_path:
+            default_path = "data/tags.json"
+            file = open(default_path, 'w')
+            file.close()
+            self.file_path = abspath(default_path)
+        self.__unpack(self.file_path)
+
+    def unpack(self):
         with open(self.file_path) as f:
             self.tag_dictionary = json.load(f)
 
-    def pack_file(self, filepath: str):
-        self.file_path = filepath
+    def pack(self):
         with open(self.file_path) as f:
             json.dump(self.tag_dictionary, f)
 
