@@ -1,20 +1,22 @@
 import json
 
 class Config:
-    def __init__(self):
-        # TODO: Add functionality.
-        self.image_directory = "/mnt/e/programming/development/arkabuko/images/"
-        self.last_image_selected = "ffxiv_01132024_194154_446.png"
-        # self.last_image_selected = "stare.png" 
+    def __init__(self, filepath: str):
+        self.data = None
+        self.__unpack(filepath)
 
-    def unpack(self, filepath: str):
-        # self.file_path = filepath
-        # with open(self.file_path) as f:
-        #     self.tag_dictionary = json.load(f)
-        pass
+    def __unpack(self, filepath: str):
+        self.file_path = filepath
+        with open(self.file_path) as f:
+            self.data = json.load(f)
 
     def pack_file(self, filepath: str):
-        # self.file_path = filepath
-        # with open(self.file_path) as f:
-        #     json.dump(self.tag_dictionary, f)
-        pass
+        self.file_path = filepath
+        with open(self.file_path) as f:
+            json.dump(self.tag_dictionary, f)
+    
+    def get_image_dir(self):
+        return self.data['directory']
+    
+    def get_selected(self):
+        return self.data['selected']

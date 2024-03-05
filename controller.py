@@ -10,9 +10,8 @@ class Controller:
         # if not config_file_path:
         #     raise Exception("Configuration file missing.")
         
-        # # TODO: Add Config file processing. Extract Image Folder Path and Tag File Path
-        self.config = Config()
-        self.config.unpack(config_file_path)
+        # Extract Image Folder Path and Tag File Path
+        self.config = Config(config_file_path)
 
         # # Set up Image Folder Path and Tag File variables
         # if not image_folder_path:
@@ -36,6 +35,6 @@ class Controller:
 
     def __start_interface(self, width: int, height: int, title: str = ""):
         self.window = Window(width, height, title, 
-                             image_dir = self.config.image_directory, 
-                             last_image_path = self.config.last_image_selected)
+                             image_dir = self.config.get_image_dir(), 
+                             last_image_path = self.config.get_selected())
         self.window.start()

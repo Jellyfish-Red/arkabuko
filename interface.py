@@ -55,7 +55,7 @@ class Window:
         self.populate_image_select_frame(self.image_select_canvases, self.primary_image_filepath, self.image_paths_list)
 
     def prepare_frames(self, window_width):
-        self.image_select_frame = Frame(self.root, width = window_width, height = 50, bg = "red")
+        self.image_select_frame = Frame(self.root, width = window_width, height = 50)
         self.view_frame = Frame(self.root, width = window_width)
         self.tag_view_frame = Frame(self.root, width = window_width, height = 50)
         self.tag_suggestions_frame = Frame(self.root, width = window_width, height = 50)
@@ -100,6 +100,7 @@ class Window:
         # Prepare variables
         self.adjacent_image_list = []
         is_leftmost = False
+        is_rightmost = False
 
         # Clear all images from canvases
         for canvas in canvases:
@@ -113,10 +114,11 @@ class Window:
         for i in range(primary_image_index - 1, primary_image_index + 2):
             if 0 <= i < len(image_paths):
                 image_select_paths.append(image_paths[i])
-
-        if len(image_select_paths) == 2:
-            is_leftmost = True
-            self.adjacent_image_list.append(("None", None))
+            elif i < 0:
+                is_leftmost = True
+                self.adjacent_image_list.append(("None", None))
+            elif len(image_paths) <= i:
+                is_rightmost = True
 
         for i, image_path in enumerate(image_select_paths):
             # If there are only two images to show because you're at the left-most image, 
