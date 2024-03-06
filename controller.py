@@ -41,13 +41,16 @@ class Controller:
         if 0 <= self.model.selected_image_index + offset < len(self.model.image_paths_list):
             image_path = self.model.image_paths_list[self.model.selected_image_index + offset]
             print(image_path)
-            
+
             if image_path is not None or image_path != "":
                 self.model.update_selected_image(image_path)
                 self.view.display_primary_image(self.view.primary_image_canvas, image_path)
                 self.view.populate_image_select_frame(self.view.image_select_canvases, image_path, self.model.get_adjacent_images())
+                self.view.regenerate_selected_image_tags(self.view.tag_view_frame)
 
     def on_tag_image(self, tag_entry: Entry):
         tag_text = tag_entry.get()
-        print(tag_text)
-        self.model.add_tag(tag_text)
+        if not self.model.tag_handler.contains(self.model.get_selected_image_path(), tag_text):
+            self.model.add_tag(tag_text)
+            self.view.regenerate_selected_image_tags(self.view.tag_view_frame)
+            print(tag_text)

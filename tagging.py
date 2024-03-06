@@ -31,12 +31,9 @@ class TagHandler:
     def pack(self):
         with open(self.file_path, 'w') as f:
             json.dump(self.tag_dictionary, f)
+            print(self.tag_dictionary)
 
     def add(self, image_file_path: str, tag: str):
-        if self.file_path is None:
-            # TODO: Raise Exception
-            return
-        
         # Create tag list for image if necessary.
         if image_file_path not in self.tag_dictionary:
             self.tag_dictionary[image_file_path] = []
@@ -49,7 +46,6 @@ class TagHandler:
             
     def remove(self, image_file_path: str, tag: str):
         if len(self.tag_dictionary) == 0:
-            # TODO: Raise Exception?
             return
         
         # Remove tag only if file exists in dictionary and if tag exists in tag list.
@@ -58,11 +54,17 @@ class TagHandler:
                 self.tag_dictionary[image_file_path].remove(tag)
 
     def get(self, image_file_path: str) -> list[str]:
-        if image_file_path is None:
+        if len(self.tag_dictionary) == 0:
             return None
         
-        if len(self.tag_dictionary) == 0:
+        if image_file_path not in self.tag_dictionary:
             return None
         
         return self.tag_dictionary[image_file_path]
         
+    def contains(self, image_file_path: str, tag: str) -> bool:
+        # Create tag list for image if necessary.
+        if image_file_path not in self.tag_dictionary:
+            return False
+        
+        return tag in self.tag_dictionary[image_file_path]

@@ -29,6 +29,7 @@ class Model:
         
         # Extract image tagging information that may already exist from previous use
         self.tag_handler = TagHandler(self.config.get_tag_filepath())
+        self.primary_image_tags = []
 
         # Set up image list and selected image
         self.regenerate_image_list()
@@ -49,7 +50,9 @@ class Model:
             self.selected_image_index = self.image_paths_list.index(path)
         except ValueError:
             self.selected_image_index = 0
-        self.primary_image_tags = self.tag_handler.get(self.config.get_selected()) if not None else []
+
+        tags = self.tag_handler.get(self.get_selected_image_path())
+        self.primary_image_tags = tags if tags != None else []
 
     def get_adjacent_images(self, radius = 1) -> list[str]:
         adjacent_image_paths = []
@@ -62,7 +65,8 @@ class Model:
         return adjacent_image_paths
     
     def save_tags(self):
-        self.model.tag_handler.pack()
+        self.tag_handler.pack()
 
     def add_tag(self, tag: str):
+        self.tag_handler.add(self.get_selected_image_path(), tag)
         self.primary_image_tags.append(tag)

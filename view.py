@@ -152,10 +152,20 @@ class View(Frame):
         tag_label = Label(frame, text = "Tags: ", anchor = "w")
         tag_label.pack(side = LEFT)
         
+        self.regenerate_selected_image_tags(frame)
+
+    def regenerate_selected_image_tags(self, frame: tk.Frame):
+        for widget in frame.winfo_children():
+            if isinstance(widget, tk.Button):
+                widget.destroy()
+        
         if self.model.primary_image_tags is not None:
-            for i in range(1, len(self.model.primary_image_tags)):
+            for i in range(0, len(self.model.primary_image_tags)):
                 tag = Button(frame, text = self.model.primary_image_tags[i])
                 tag.pack(side = LEFT)
+        # else:
+        #     tag_none_label = Label(frame, text = "None", anchor = "w")
+        #     tag_none_label.pack(side = LEFT)
 
     # def prepare_tag_suggestions_frame(self):
     #     # Prepare Tag Suggestions Frame
