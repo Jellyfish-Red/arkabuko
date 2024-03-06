@@ -1,83 +1,75 @@
 import tkinter as tk
 from tkinter import Tk, Canvas, Frame, Button, Label, Entry, simpledialog, LEFT, RIGHT, BOTH
-from PIL import ImageTk,  Image
-from tagging import TagHandler
+from tkinter.ttk import Separator
+from PIL import ImageTk, Image
 
-from os import listdir
-from os.path import isfile, join, basename, abspath
 from functools import partial
 
+from model import Model
 
-class Window:
-    def __init__(self, width: int, height: int, title: str,
-                 tag_handler: TagHandler = None, 
-                 image_dir: str = None, 
-                 last_image_path: str = None):
-        
-        if not image_dir:
-            raise Exception("Requires image directory to be provided.")
-        if not last_image_path:
-            raise Exception("Requires currently-selected image to be provided")
-        self.root = Tk()
-        self.root.title(title)
+class View(Frame):
+    def __init__(self, parent: Tk, model: Model, width: int, height: int):
+        super().__init__(parent)
+        self.parent = parent
 
         # Hard-Coded Constants TODO: Move to Config File
-        self.MENU_BAR_HEIGHT = 40
+        self.MENU_BAR_HEIGHT = 30
         self.IMAGE_SELECT_WIDTH = 250
         self.IMAGE_SELECT_HEIGHT = 100
         self.VIEW_FRAME_HEIGHT = 450
+
+        self.model = model
 
         # Window
         self.width = width
         self.height = height
 
-        # Tags
-        self.tag_handler = tag_handler
-
-        # Selectable images
-        self.image_directory = image_dir
-
         # Currently-selected image
-        self.primary_image_filepath = join(image_dir, last_image_path)
         self.primary_image_canvas = None
-        self.primary_image_tags = self.tag_handler.get(self.primary_image_filepath) if not None else []
         self.image_select_canvases = []
+        self.image_select_image_list: list[(str, ImageTk.PhotoImage)] = []
 
     def start(self):
-        self.generate_image_list()
         self.prepare_window()
-        self.root.mainloop()
 
     def prepare_window(self):
+        # Prepare Frames
         self.prepare_frames(self.width)
-        self.prepare_menu_bar_frame(self.menu_bar_frame, self.width, self.MENU_BAR_HEIGHT)
+        self.prepare_menu_bar_frame(self.menu_bar_frame)
         self.prepare_image_select_frame(self.image_select_frame, self.IMAGE_SELECT_WIDTH, self.IMAGE_SELECT_HEIGHT)
         self.prepare_view_frame(self.view_frame, self.width, self.VIEW_FRAME_HEIGHT)
         self.prepare_tag_view_frame(self.tag_view_frame)
         # self.prepare_tag_suggestions_frame()
         self.prepare_tag_entry_frame(self.tag_entry_frame)
-        self.select_image(self.primary_image_canvas, join(self.image_directory, self.primary_image_filepath))
-        self.populate_image_select_frame(self.image_select_canvases, self.primary_image_filepath, self.image_paths_list)
+
+        # Prepare data shown in frames
+        self.display_primary_image(self.primary_image_canvas, 
+                                   self.model.get_selected_image_path())
+        self.populate_image_select_frame(self.image_select_canvases, 
+                                         self.model.get_selected_image_path(), 
+                                         self.model.image_paths_list)
 
     def prepare_frames(self, window_width):
-        self.menu_bar_frame = Frame(self.root, width = window_width, height = self.MENU_BAR_HEIGHT)
-        self.image_select_frame = Frame(self.root, width = window_width, height = self.IMAGE_SELECT_HEIGHT)
-        self.view_frame = Frame(self.root, width = window_width)
-        self.tag_view_frame = Frame(self.root, width = window_width)
-        # self.tag_suggestions_frame = Frame(self.root, width = window_width, height = 50)
-        self.tag_entry_frame = Frame(self.root, width = window_width, height = 50)
+        self.menu_bar_frame = Frame(self.parent, width = window_width, height = self.MENU_BAR_HEIGHT)
+        self.image_select_frame = Frame(self.parent, width = window_width, height = self.IMAGE_SELECT_HEIGHT)
+        image_select_separator = Separator(self.parent, orient = "horizontal")
+        self.view_frame = Frame(self.parent, width = window_width)
+        view_frame_separator = Separator(self.parent, orient = "horizontal")
+        self.tag_view_frame = Frame(self.parent, width = window_width)
+        # self.tag_suggestions_frame = Frame(self.parent, width = window_width, height = 50)
+        self.tag_entry_frame = Frame(self.parent, width = window_width, height = 50)
 
         self.menu_bar_frame.pack(fill = BOTH, expand = True)
         self.image_select_frame.pack(fill = "x", expand = True)
+        image_select_separator.pack(fill = "x", expand = True)
         self.view_frame.pack(fill = BOTH, expand = True)
+        view_frame_separator.pack(fill = "x", expand = True)
         self.tag_view_frame.pack()
         # self.tag_suggestions_frame.pack()
         self.tag_entry_frame.pack()
 
     def prepare_menu_bar_frame(self,
-                               frame: tk.Frame,
-                               width: int,
-                               height: int):
+                               frame: tk.Frame):
         menu_bar = tk.Menu(frame)
 
         file_menu = tk.Menu(menu_bar, tearoff = 0)
@@ -88,12 +80,10 @@ class Window:
         search_menu.add_command(label = "Search Tag", command = self.on_search_tags)
         menu_bar.add_cascade(label = "Search", menu = search_menu)
 
-        self.root.config(menu = menu_bar)
+        self.parent.config(menu = menu_bar)
 
     def on_save_tags(self):
-        print("Saving!")
-        self.tag_handler.pack()
-        print("Done!")
+        self.model.save_tags()
 
     def on_search_tags(self):
         tag_to_search = simpledialog.askstring("Search Tags", "Enter a tag to search for")
@@ -109,78 +99,36 @@ class Window:
         self.image_select_canvases = []
 
         for i in range(0, 3):
-
             # Create a Canvas widget
             canvas = tk.Canvas(frame, width = width, height = height)
             canvas.pack(side = tk.LEFT, padx = 10)  # Adjust the placement as needed
             self.image_select_canvases.append(canvas)
-
-            # Prepare tag for future images and link tag to event on click
-            image_tag = "image_preview"
-            
-            if i == 0:
-                canvas.tag_bind(image_tag, "<Button-1>", self.on_click_left_image)
-            elif i == 1:
-                canvas.tag_bind(image_tag, "<Button-1>", self.on_click_middle_image)
-            elif i == 2:
-                canvas.tag_bind(image_tag, "<Button-1>", self.on_click_right_image)
 
     def populate_image_select_frame(self, 
                                     canvases: list[tk.Canvas], 
                                     center_image_filepath: str, 
                                     image_paths: list[str]):
         # Prepare variables
-        self.adjacent_image_list = []
-        is_leftmost = False
-        is_rightmost = False
+        self.image_select_image_list = []
 
         # Clear all images from canvases
         for canvas in canvases:
             canvas.delete("image_preview")
 
-        # Get the images adjacent to the Primary.
-        primary_image_index = image_paths.index(center_image_filepath)
-        
-        # Generate list of valid image paths
-        image_select_paths = []
-        for i in range(primary_image_index - 1, primary_image_index + 2):
-            if 0 <= i < len(image_paths):
-                image_select_paths.append(image_paths[i])
-            elif i < 0:
-                is_leftmost = True
-                self.adjacent_image_list.append(("None", None))
-            elif len(image_paths) <= i:
-                is_rightmost = True
+        # Generate list of valid image paths of images adjacent to the selected image
+        adjacent_image_paths = self.model.get_adjacent_images()
 
-        for i, image_path in enumerate(image_select_paths):
-            # If there are only two images to show because you're at the left-most image, 
-            # leave the leftmost canvas blank and add 1 to the index
-            if is_leftmost:
-                i += 1
+        for i, image_path in enumerate(adjacent_image_paths):
+            # If this image was considered valid, show it in the image select frame.
+            # Otherwise, ignore it and move to the next loop.
+            if image_path is not None:
+                # Prepare image tag
+                image_tag = "image_preview"
 
-            # Prepare image tag
-            image_tag = "image_preview"
-
-            # Load and display the image on the canvas
-            canvas = canvases[i]
-            image = self.load_and_display_image(canvas, image_path, image_tag)
-            self.adjacent_image_list.append((image_path, image))
-
-    def on_click_left_image(self, event):
-        image = self.adjacent_image_list[0]
-        self.update_images(image)
-
-    def on_click_middle_image(self, event):
-        image = self.adjacent_image_list[1]
-        self.update_images(image)
-
-    def on_click_right_image(self, event):
-        image = self.adjacent_image_list[2]
-        self.update_images(image)
-
-    def update_images(self, image):
-        self.select_image(self.primary_image_canvas, image[0])
-        self.populate_image_select_frame(self.image_select_canvases, image[0], self.image_paths_list)
+                # Load and display the image on the canvas
+                canvas = canvases[i]
+                image = self.load_and_display_image(canvas, image_path, image_tag)
+                self.image_select_image_list.append((image_path, image))
 
     def load_and_display_image(self, canvas, image_path, image_tag) -> ImageTk.PhotoImage:
         # Load the image using Pillow
@@ -204,9 +152,9 @@ class Window:
         tag_label = Label(frame, text = "Tags: ", anchor = "w")
         tag_label.pack(side = LEFT)
         
-        if self.primary_image_tags is not None:
-            for i in range(1, len(self.primary_image_tags)):
-                tag = Button(frame, text = self.primary_image_tags[i])
+        if self.model.primary_image_tags is not None:
+            for i in range(1, len(self.model.primary_image_tags)):
+                tag = Button(frame, text = self.model.primary_image_tags[i])
                 tag.pack(side = LEFT)
 
     # def prepare_tag_suggestions_frame(self):
@@ -223,20 +171,13 @@ class Window:
         tag_entry_label = Label(frame, text = "Enter New Tag: ")
         tag_entry_label.pack(fill = "x", side = LEFT)
 
-        tag_entry = Entry(frame, width = 50)
-        tag_entry.pack(fill = "x", side = LEFT)
+        self.tag_entry = Entry(frame, width = 50)
+        self.tag_entry.pack(fill = "x", side = LEFT)
 
-        on_tag_image_callable = partial(self.on_tag_image, tag_entry)
-        tag_submit_button = Button(frame, text = "Submit", command = on_tag_image_callable)
-        tag_submit_button.pack(fill = "x", side = LEFT)
+        self.tag_submit_button = Button(frame, text = "Submit")
+        self.tag_submit_button.pack(fill = "x", side = LEFT)
 
-    def on_tag_image(self, tag_entry: tk.Entry):
-        tag_text = tag_entry.get()
-        print(tag_text)
-        self.add_tag()
-        self.primary_image_tags.append(tag_text)
-
-    def select_image(self, canvas: tk.Canvas, image_path: str, image_tag: str = "primary_image"):
+    def display_primary_image(self, canvas: tk.Canvas, image_path: str, image_tag: str = "primary_image"):
         # Load and display the image on the canvas
         self.primary_image = self.load_and_display_image(canvas, image_path, image_tag)
 
@@ -256,10 +197,3 @@ class Window:
     
     def delete_image_from_canvas(self, canvas: tk.Canvas, tag: str):
         canvas.delete(tag)
-
-    # Generate a list of image file paths within the Image Directory
-    def generate_image_list(self):
-        self.image_paths_list = [join(self.image_directory, f) 
-                                 for f in listdir(self.image_directory) 
-                                 if isfile(join(self.image_directory, f))]
-        print(self.image_paths_list)

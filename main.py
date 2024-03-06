@@ -1,13 +1,26 @@
 import sys
+from tkinter import Tk
+
+from model import Model
+from view import View
 from controller import Controller
-from os.path import basename, abspath, join
+
+class Application(Tk):
+    def __init__(self):
+        # Initialize Parent UI frame
+        super().__init__()
+        self.title("Arkabuko - Image Viewer")
+
+        # Prepare MVC components
+        model = Model()
+        view = View(self, model, 800, 600)
+        view.start()
+        
+        controller = Controller(model, view)
 
 def main() -> int:
-    config_rel_file_path = "data/config.json"
-    
-    controller = Controller(800, 600, "Arkabuko - Image Viewer", 
-                            config_file_path = abspath(config_rel_file_path))
-    controller.start()
+    app = Application()
+    app.mainloop()
 
 if __name__ == '__main__':
     sys.exit(main())
