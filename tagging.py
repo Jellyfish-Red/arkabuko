@@ -61,6 +61,12 @@ class TagHandler:
             return None
         
         return self.tag_dictionary[image_file_path]
+    
+    def exists(self, tag: str) -> bool:
+        for path, list_tags in self.tag_dictionary:
+            if tag in list_tags:
+                return True
+        return False
         
     def contains(self, image_file_path: str, tag: str) -> bool:
         # Create tag list for image if necessary.
@@ -68,3 +74,9 @@ class TagHandler:
             return False
         
         return tag in self.tag_dictionary[image_file_path]
+    
+    def get_subset(self, tag: str) -> list[str]:
+            return [path 
+                    for path in self.tag_dictionary.keys()
+                    if self.contains(path, tag)]
+            

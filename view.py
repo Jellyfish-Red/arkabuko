@@ -36,6 +36,7 @@ class View(Frame):
         # Prepare Frames
         self.prepare_frames(self.width)
         self.prepare_menu_bar_frame(self.menu_bar_frame)
+        self.display_view_label(self.search_description_frame, "all")
         self.prepare_image_select_frame(self.image_select_frame, self.IMAGE_SELECT_WIDTH, self.IMAGE_SELECT_HEIGHT)
         self.prepare_view_frame(self.view_frame, self.width, self.VIEW_FRAME_HEIGHT)
         self.prepare_tag_view_frame(self.tag_view_frame)
@@ -45,27 +46,27 @@ class View(Frame):
         # Prepare data shown in frames
         self.display_primary_image(self.primary_image_canvas, 
                                    self.model.get_selected_image_path())
-        self.populate_image_select_frame(self.image_select_canvases, 
-                                         self.model.get_selected_image_path(), 
-                                         self.model.image_paths_list)
+        self.populate_image_select_frame(self.image_select_canvases)
 
     def prepare_frames(self, window_width):
-        self.menu_bar_frame = Frame(self.parent, width = window_width, height = self.MENU_BAR_HEIGHT)
+        self.menu_bar_frame = Frame(self.parent, width = window_width)
+        self.search_description_frame = Frame(self.parent, width = window_width, bg = "white")
+        search_description_separator = Separator(self.parent, orient = "horizontal")
         self.image_select_frame = Frame(self.parent, width = window_width, height = self.IMAGE_SELECT_HEIGHT)
         image_select_separator = Separator(self.parent, orient = "horizontal")
         self.view_frame = Frame(self.parent, width = window_width)
         view_frame_separator = Separator(self.parent, orient = "horizontal")
         self.tag_view_frame = Frame(self.parent, width = window_width)
-        # self.tag_suggestions_frame = Frame(self.parent, width = window_width, height = 50)
         self.tag_entry_frame = Frame(self.parent, width = window_width, height = 50)
 
         self.menu_bar_frame.pack(fill = BOTH, expand = True)
+        self.search_description_frame.pack(fill = "x", expand = True)
+        search_description_separator.pack(fill = "x", expand = True)
         self.image_select_frame.pack(fill = "x", expand = True)
         image_select_separator.pack(fill = "x", expand = True)
         self.view_frame.pack(fill = BOTH, expand = True)
         view_frame_separator.pack(fill = "x", expand = True)
         self.tag_view_frame.pack()
-        # self.tag_suggestions_frame.pack()
         self.tag_entry_frame.pack()
 
     def prepare_menu_bar_frame(self,
@@ -78,6 +79,7 @@ class View(Frame):
 
         search_menu = tk.Menu(menu_bar, tearoff = 0)
         search_menu.add_command(label = "Search Tag", command = self.on_search_tags)
+        search_menu.add_command(label = "Reset Filter", command = self.on_reset_filter)
         menu_bar.add_cascade(label = "Search", menu = search_menu)
 
         self.parent.config(menu = menu_bar)
@@ -104,10 +106,21 @@ class View(Frame):
             canvas.pack(side = tk.LEFT, padx = 10)  # Adjust the placement as needed
             self.image_select_canvases.append(canvas)
 
+    def display_view_label(self, frame: tk.Frame, view_type: str):
+        for widget in frame.winfo_children():
+            if isinstance(widget, tk.Label) or isinstance(widget, tk.Button):
+                widget.destroy()
+
+        label_string = "Viewing "
+        if view_type == "all":
+            label_string += "all images in directory."
+        else:
+            label_string += "images tagged with \'" + view_type + "\'."
+        label = tk.Label(frame, text = label_string, bg = "white")
+        label.pack()
+
     def populate_image_select_frame(self, 
-                                    canvases: list[tk.Canvas], 
-                                    center_image_filepath: str, 
-                                    image_paths: list[str]):
+                                    canvases: list[tk.Canvas]):
         # Prepare variables
         self.image_select_image_list = []
 
@@ -123,11 +136,11 @@ class View(Frame):
             # Otherwise, ignore it and move to the next loop.
             if image_path is not None:
                 # Prepare image tag
-                image_tag = "image_preview"
+                tag_bind_string = "image_preview"
 
                 # Load and display the image on the canvas
                 canvas = canvases[i]
-                image = self.load_and_display_image(canvas, image_path, image_tag)
+                image = self.load_and_display_image(canvas, image_path, tag_bind_string)
                 self.image_select_image_list.append((image_path, image))
 
     def load_and_display_image(self, canvas, image_path, image_tag) -> ImageTk.PhotoImage:
@@ -144,7 +157,7 @@ class View(Frame):
     def prepare_view_frame(self, frame: tk.Frame, width: int, height: int):
         # Use a default value for the width and height, just in case the image isn't selected yet
         if not self.primary_image_canvas:
-            self.primary_image_canvas = Canvas(self.view_frame, width = width, height = height)
+            self.primary_image_canvas = Canvas(frame, width = width, height = height)
         self.primary_image_canvas.pack(fill=BOTH, expand=True)
 
     def prepare_tag_view_frame(self, frame: tk.Frame):
@@ -156,25 +169,30 @@ class View(Frame):
 
     def regenerate_selected_image_tags(self, frame: tk.Frame):
         for widget in frame.winfo_children():
-            if isinstance(widget, tk.Button):
+            if isinstance(widget, tk.Button) or widget.cget("text") == "None":
                 widget.destroy()
         
-        if self.model.primary_image_tags is not None:
+        if self.model.primary_image_tags is not None and len(self.model.primary_image_tags) > 0:
             for i in range(0, len(self.model.primary_image_tags)):
                 tag = Button(frame, text = self.model.primary_image_tags[i])
+                tag.config(command = partial(self.on_tag_click, tag.cget("text")))
                 tag.pack(side = LEFT)
-        # else:
-        #     tag_none_label = Label(frame, text = "None", anchor = "w")
-        #     tag_none_label.pack(side = LEFT)
+        else:
+            tag_none_label = Label(frame, text = "None")
+            tag_none_label.pack(side = LEFT)
 
-    # def prepare_tag_suggestions_frame(self):
-    #     # Prepare Tag Suggestions Frame
-    #     tag_suggestion_label = Label(self.tag_suggestions_frame, text = "Tag Suggestions: ", anchor = "w")
-    #     tag_suggestion_label.pack(side = LEFT)
-    #     for tag_number in range(1, 11):
-    #         tag = Button(self.tag_suggestions_frame, text = "Recent Tag " + str(tag_number))
-    #         tag.pack(side = LEFT)
-    #         self.recent_tags.append(tag)
+    def on_tag_click(self, tag: str):
+        tag_string = str(tag)
+        self.display_view_label(self.search_description_frame, tag_string)
+        self.model.regenerate_image_list(tag_string)
+        self.populate_image_select_frame(self.image_select_canvases)
+    
+    def on_reset_filter(self):
+        tag_string = "all"
+        self.display_view_label(self.search_description_frame, tag_string)
+        self.model.regenerate_image_list(None)
+        self.populate_image_select_frame(self.image_select_canvases)
+
 
     def prepare_tag_entry_frame(self, frame: tk.Frame):
         # Prepare Entry Frame
