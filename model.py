@@ -68,7 +68,6 @@ class Model:
             self.selected_image_index = self.image_paths_list.index(path)
             self.selected_path = self.image_paths_list[self.selected_image_index]
         except ValueError:
-            print("ding!")
             self.selected_image_index = 0
             self.selected_path = ""
 
@@ -86,6 +85,13 @@ class Model:
         return adjacent_image_paths
     
     def save_tags(self):
+        self.tag_handler.pack()
+
+    def delete_tag(self, tag: str):
+        self.tag_handler.remove(self.selected_path, tag)
+
+    def delete_tags(self):
+        self.tag_handler.remove_all(self.selected_path)
         self.tag_handler.pack()
 
     def add_tag(self, tag: str):

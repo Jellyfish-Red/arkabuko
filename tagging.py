@@ -53,6 +53,16 @@ class TagHandler:
             if tag in self.tag_dictionary[image_file_path]:
                 self.tag_dictionary[image_file_path].remove(tag)
 
+    def remove_all(self, image_file_path: str):
+        if len(self.tag_dictionary) == 0:
+            return
+        
+        # Remove tag only if file exists in dictionary and if tag exists in tag list.
+        try:
+            del self.tag_dictionary[image_file_path]
+        except KeyError:
+            return
+
     def get(self, image_file_path: str) -> list[str]:
         if len(self.tag_dictionary) == 0:
             return None

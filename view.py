@@ -40,7 +40,6 @@ class View(Frame):
         self.prepare_image_select_frame(self.image_select_frame, self.IMAGE_SELECT_WIDTH, self.IMAGE_SELECT_HEIGHT)
         self.prepare_view_frame(self.view_frame, self.width, self.VIEW_FRAME_HEIGHT)
         self.prepare_tag_view_frame(self.tag_view_frame)
-        # self.prepare_tag_suggestions_frame()
         self.prepare_tag_entry_frame(self.tag_entry_frame)
 
         # Prepare data shown in frames
@@ -75,6 +74,7 @@ class View(Frame):
 
         file_menu = tk.Menu(menu_bar, tearoff = 0)
         file_menu.add_command(label = "Save Tags", command = self.on_save_tags)
+        file_menu.add_command(label = "Delete Tags from Selected Image", command = self.on_delete_tags)
         menu_bar.add_cascade(label = "File", menu = file_menu)
 
         search_menu = tk.Menu(menu_bar, tearoff = 0)
@@ -86,6 +86,10 @@ class View(Frame):
 
     def on_save_tags(self):
         self.model.save_tags()
+
+    def on_delete_tags(self):
+        self.model.delete_tags()
+        self.regenerate_selected_image_tags(self.tag_view_frame)
 
     def on_search_tags(self):
         tag_to_search = simpledialog.askstring("Search Tags", "Enter a tag to search for")
