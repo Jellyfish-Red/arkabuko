@@ -201,13 +201,9 @@ class View(Frame):
 
         self.tag_entry = Entry(frame, width = 50)
         self.tag_entry.pack(fill = "x", side = LEFT)
-        self.tag_entry.bind("<Key>", self.on_entry_key_press)
 
         self.tag_submit_button = Button(frame, text = "Submit")
         self.tag_submit_button.pack(fill = "x", side = LEFT)
-
-    def on_entry_key_press(self, event):
-        print(f"Key pressed: {event.char}")
 
     def display_primary_image(self, canvas: tk.Canvas, image_path: str, image_tag: str = "primary_image"):
         # Load and display the image on the canvas

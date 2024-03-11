@@ -1,5 +1,5 @@
 from functools import partial
-from tkinter import Entry
+from tkinter import Entry, END
 from PIL import ImageTk
 
 from os import listdir
@@ -27,6 +27,8 @@ class Controller:
         # Hook up Tag Callbacks
         on_tag_image_command = partial(self.on_tag_image, self.view.tag_entry)
         self.view.tag_submit_button.configure(command = on_tag_image_command)
+        on_entry_return_command = partial(self.on_return_press, self.view.tag_entry)
+        self.view.tag_entry.bind("<Return>", on_entry_return_command)
 
     def on_click_left_image(self, event):
         self.select_image(-1)
@@ -52,5 +54,10 @@ class Controller:
         tag_text = tag_entry.get()
         if not self.model.tag_handler.contains(self.model.get_selected_image_path(), tag_text):
             self.model.add_tag(tag_text)
-            self.view.regenerate_selected_image_tags(self.view.tag_view_frame, self.on_tag_click)
-            print(tag_text)
+            self.view.regenerate_selected_image_tags(self.view.tag_view_frame)
+            tag_entry.delete(0, END)
+            print(f"Added tag: {tag_text}")
+            
+
+    def on_return_press(self, tag_entry: Entry, event):
+        self.on_tag_image(tag_entry)
