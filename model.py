@@ -57,8 +57,6 @@ class Model:
         else:
             self.image_paths_list = copy.deepcopy(self.full_image_paths_list)
             self.update_selected_image(self.selected_path)
-            
-        # print(self.image_paths_list)
 
     def get_selected_image_path(self):
         return self.image_paths_list[self.selected_image_index]
@@ -71,8 +69,15 @@ class Model:
             self.selected_image_index = 0
             self.selected_path = ""
 
-        tags = self.tag_handler.get(self.get_selected_image_path())
-        self.primary_image_tags = tags if tags != None else []
+        if self.tag_handler.empty():
+            self.primary_image_tags = []
+
+        else:
+            if self.tag_handler.contains_path(self.get_selected_image_path()):
+                tags = self.tag_handler.get(self.get_selected_image_path()).copy()
+            else:
+                tags = []
+            self.primary_image_tags = tags
 
     def get_adjacent_images(self, radius: int = 1) -> list[str]:
         adjacent_image_paths = []
@@ -97,3 +102,7 @@ class Model:
     def add_tag(self, tag: str):
         self.tag_handler.add(self.get_selected_image_path(), tag)
         self.primary_image_tags.append(tag)
+
+    def remove_tag(self, tag: str):
+        self.tag_handler.remove(self.get_selected_image_path(), tag)
+        self.primary_image_tags.remove(tag)

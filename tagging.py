@@ -41,7 +41,7 @@ class TagHandler:
         # Add tag to tag list if not already there.
         if tag not in self.tag_dictionary[image_file_path]:
             self.tag_dictionary[image_file_path].append(tag)
-
+            
         # Do nothing if tag already exists in tag list.
             
     def remove(self, image_file_path: str, tag: str):
@@ -76,10 +76,12 @@ class TagHandler:
         for path, list_tags in self.tag_dictionary:
             if tag in list_tags:
                 return True
-        return False
-        
+        return 
+    
+    def contains_path(self, image_file_path: str) -> bool:
+        return image_file_path in self.tag_dictionary
+
     def contains(self, image_file_path: str, tag: str) -> bool:
-        # Create tag list for image if necessary.
         if image_file_path not in self.tag_dictionary:
             return False
         
@@ -89,4 +91,7 @@ class TagHandler:
             return [path 
                     for path in self.tag_dictionary.keys()
                     if self.contains(path, tag)]
+    
+    def empty(self) -> bool:
+        return self.tag_dictionary is None or len(self.tag_dictionary) == 0
             

@@ -24,9 +24,13 @@ class Controller:
             elif i == 2:
                 canvas.tag_bind(tag_bind_string, "<Button-1>", self.on_click_right_image)
 
-        # Hook up Tag Callbacks
+        self.view.parent.bind("<Left>", self.on_click_left_image)
+        self.view.parent.bind("<Right>", self.on_click_right_image)
+
+        # Hook up Tag Functionality Callbacks
         on_tag_image_command = partial(self.on_tag_image, self.view.tag_entry)
         self.view.tag_submit_button.configure(command = on_tag_image_command)
+
         on_entry_return_command = partial(self.on_return_press, self.view.tag_entry)
         self.view.tag_entry.bind("<Return>", on_entry_return_command)
 
@@ -57,7 +61,6 @@ class Controller:
             self.view.regenerate_selected_image_tags(self.view.tag_view_frame)
             tag_entry.delete(0, END)
             print(f"Added tag: {tag_text}")
-            
 
     def on_return_press(self, tag_entry: Entry, event):
         self.on_tag_image(tag_entry)
